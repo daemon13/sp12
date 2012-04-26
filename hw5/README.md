@@ -314,6 +314,11 @@ similarity=# select count(*) from restaurantaddress ra, restaurantphone rp where
 similarity=# select count(*) from restaurantaddress ra, restaurantphone rp where ra.name % rp.name;
 ```
 
+####Caveat: floating point numbers (Added 4/25)
+We run into a problem when we try to use a limit like .7 because there are some matches that have a similarity score of exactly 7/10. Technically these should be rejected by both queries above (your join and the initial one), but because floating point numbers are a little wiggly, 7.0/10 might end up being like 7.0000001 or 6.999999.
+
+In order to avoid this problem, it is highly recommended that if you want to test a THRESH of .7, you actually set it to ".699" or so, to ensure that any similarity scores of exactly 7/10 have well-defined behavior (always accepted). We will do this while grading, too; we're not trying to dock you points for silly floating point precision errors.
+
 ####Larger data
 Bored with the small data set?  Try the large data set!!!  Use the following commands to set it up:
 
@@ -338,10 +343,10 @@ We'll be comparing runtime using Postgres' `EXPLAIN ANALYZE` command.  The final
 First, run the below commands in the `similarity` database, and then run the commands again in the `similarity_large` database.  In summary, the performance.txt file should contain the output of eight queries: the four below on the `similarity` database, followed by the four below on the `similarity_large` database.
 
 ```
-similarity=# SELECT set_limit(.3);
+similarity=# SELECT set_limit(.299);
 similarity=# EXPLAIN ANALYZE select count(*) from restaurantaddress ra, restaurantphone rp where similarity(ra.name,rp.name) > show_limit();
 similarity=# EXPLAIN ANALYZE select count(*) from restaurantaddress ra, restaurantphone rp where ra.name % rp.name;
-similarity=# SELECT set_limit(.7);
+similarity=# SELECT set_limit(.699);
 similarity=# EXPLAIN ANALYZE select count(*) from restaurantaddress ra, restaurantphone rp where similarity(ra.name,rp.name) > show_limit();
 similarity=# EXPLAIN ANALYZE select count(*) from restaurantaddress ra, restaurantphone rp where ra.name % rp.name;
 ```
